@@ -1,1 +1,6 @@
 backend/.env
+next_steps.md
+backend/your_audio_file.wav
+/.venv/
+backend/app/__pycache__/
+backend/app/services/__pycache__/
