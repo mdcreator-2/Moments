@@ -29,9 +29,11 @@ while True:
 
         #******* USE FIREBASE HERE ******
         r.set(f"{video_id}:transcript", json.dumps(transcript))
-
-        update_status(video_id, "Transcription Ready")
         print(f"[Worker] Ready To Analyze{video_id}")
+
+        update_status(video_id, "analyzing")
+        clips = analyzer.find_viral_clips(transcript, download_result["duration"])
+        r.set(f"{video_id}:clips", json.dumps(clips))
 
     except Exception as e:
         print(f"[Worker] Error processing {video_id}: {e}")
