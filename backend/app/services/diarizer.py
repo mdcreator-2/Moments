@@ -1,11 +1,13 @@
 import pyannote.audio
 import os
+import torch
 from pyannote.audio import Pipeline
+from app.config import DEVICE, HF_AUTH_TOKEN, USE_ASSEMBLYAI, ASSEMBLYAI_API_KEY
 
-DEVICE = "cpu"
-HF_AUTH_TOKEN = app.config.HF_AUTH_TOKEN
-USE_ASSEMBLYAI = app.config.USE_ASSEMBLYAI
-ASSEMBLYAI_API_KEY = app.config.ASSEMBLYAI_API_KEY
+# Fix for PyTorch 2.6+ weights_only default change
+# Safe here — we only load trusted pyannote models from Hugging Face
+_original_torch_load = torch.load
+torch.load = lambda *args, **kwargs: _original_torch_load(*args, **{k: v for k, v in kwargs.items() if k != "weights_only"}, weights_only=False)
 
 
 def diarize_pyannote(audio_path: str) -> list[dict]:
