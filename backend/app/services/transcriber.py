@@ -1,37 +1,33 @@
-import whisperx
-import os
-import app.config
+import assemblyai as aai
+from app.config import ASSEMBLYAI_API_KEY
 
-# Device config — set these in your environment or pass them in
-DEVICE = app.config.DEVICE
-BATCH_SIZE = int(app.config.BATCH_SIZE)
-COMPUTE_TYPE = app.config.COMPUTE_TYPE
+aai.settings.api_key = ASSEMBLYAI_API_KEY
+
 
 def transcribe_audio(audio_path: str) -> list[dict]:
+    print("[Transcriber] Uploading to AssemblyAI...")
 
-    print("[Transcriber] Loading Faster-Whisper model...")
-    model = whisperx.load_model("base", DEVICE, compute_type=COMPUTE_TYPE)
-
-    print("[Transcriber] Transcribing audio...")
-    audio = whisperx.load_audio(audio_path)
-    result = model.transcribe(audio, batch_size=BATCH_SIZE)
-
-    print(f"[Transcriber] Detected language: {result['language']}")
-
-    print("[Transcriber] Loading alignment model (Wav2Vec2)...")
-    model_a, metadata = whisperx.load_align_model(
-        language_code=result["language"],
-        device=DEVICE
+    config = aai.TranscriptionConfig(
+        speaker_labels=True,
+        word_boost=[],
     )
 
-    print("[Transcriber] Aligning words to waveform...")
-    result = whisperx.align(
-        result["segments"], model_a, metadata, audio, DEVICE,
-        return_char_alignments=False
-    )
+    transcriber = aai.Transcriber()
+    transcript = transcriber.transcribe(audio_path, config=config)
 
-    return [
-        {"word": w["word"], "start": w.get("start"), "end": w.get("end")}
-        for segment in result["segments"]
-        for w in segment["words"]
-    ]
+    if transcript.status == aai.TranscriptStatus.error:
+        raise Exception(f"AssemblyAI error: {transcript.error}")
+
+    print(f"[Transcriber] Transcription complete — {len(transcript.words)} words")
+
+    words = []
+    for word in transcript.words:
+        words.append({
+            "word": word.text,
+            "start": word.start / 1000,
+            "end": word.end / 1000,
+            "speaker": word.speaker,
+        })
+
+    print(f"[Transcriber] {len(words)} words with speaker labels")
+    return words
