@@ -1,0 +1,24 @@
+# === Core Backend ===
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+redis
+
+yt-dlp
+
+
+#Install torch first - pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+whisperx
+
+
+pyannote.audio
+
+google-generativeai
+
+
+opencv-python
+mediapipe
+
+firebase-admin

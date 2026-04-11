@@ -3,7 +3,7 @@ import os
 
 def download_video(url,video_id):
     output_path = f"/tmp/clipper/{video_id}"
-    os.mkdir(output_path,exist_ok=True)
+    os.makedirs(output_path,exist_ok=True)
     ydl_opts_video = {
         'format': 'bestvideo[height<=1080]',
         'merge_output_format': 'mp4',
