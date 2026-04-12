@@ -48,29 +48,63 @@ Turn long-form YouTube videos into viral short clips in minutes.
 
 ## 📁 Repository Structure
 
-```text
 Moments/
-├─ backend/
-│  ├─ app/
-│  │  ├─ main.py
-│  │  ├─ config.py
-│  │  ├─ models.py
-│  │  └─ services/
-│  │     ├─ analyzer.py
-│  │     ├─ face_tracker.py
-│  │     ├─ subtitle_generator.py
-│  │     └─ renderer.py
-│  └─ ...
-├─ frontend/
-│  ├─ src/
-│  │  ├─ pages/
-│  │  ├─ components/
-│  │  └─ lib/
-│  └─ ...
-├─ execution.md
-└─ frontend_prompts.md
-```
-
+├── .gitignore
+├── CONTRIBUTING.md
+├── LICENSE
+├── README.md
+├── execution.md
+├── frontend_prompts.md
+├── backend/
+│   ├── .env
+│   ├── .env.example
+│   ├── Dockerfile
+│   ├── worker.py
+│   ├── render_worker.py
+│   ├── requirements.txt
+│   └── app/
+│       ├── __init__.py
+│       ├── main.py
+│       ├── config.py
+│       ├── models.py
+│       └── services/
+│           ├── __init__.py
+│           ├── downloader.py
+│           ├── transcriber.py
+│           ├── analyzer.py
+│           ├── face_tracker.py
+│           ├── subtitle_generator.py
+│           └── renderer.py
+└── frontend/
+    ├── .gitignore
+    ├── index.html
+    ├── package.json
+    ├── package-lock.json
+    ├── tsconfig.json
+    ├── tsconfig.app.json
+    ├── tsconfig.node.json
+    ├── vite.config.ts
+    ├── postcss.config.js
+    ├── tailwind.config.js
+    ├── eslint.config.js
+    ├── public/
+    │   └── vite.svg
+    └── src/
+        ├── main.tsx
+        ├── App.tsx
+        ├── index.css
+        ├── lib/
+        │   └── api.ts
+        ├── components/
+        │   ├── ClipCard.tsx
+        │   ├── Navbar.tsx
+        │   ├── RenderProgress.tsx
+        │   └── VideoPlayer.tsx
+        └── pages/
+            ├── LandingPage.tsx
+            ├── ProcessingPage.tsx
+            ├── ResultsPage.tsx
+            └── ClipPage.tsx
 ---
 
 ## 🚀 Local Setup
