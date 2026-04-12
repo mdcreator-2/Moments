@@ -1,12 +1,16 @@
-import google.generativeai as genai
 import os
 import json
+from app.config import GEMINI_API_KEY  # You can rename this to OPENROUTER_API_KEY in your config later
+from app.models import ViralClip
+from openrouter import OpenRouter
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-genai.configure(api_key=GEMINI_API_KEY)
+# Initialize the new OpenRouter client
+client = OpenRouter(
+    api_key=GEMINI_API_KEY, # Make sure to put your friend's key in the .env under GEMINI_API_KEY, or change this variable
+    server_url="https://ai.hackclub.com/proxy/v1",
+)
 
 def _build_transcript_text(transcript: list[dict]) -> str:
-    """Converts merged word list into readable timestamped text for the prompt."""
     lines = []
     current_speaker = None
     current_line = []
@@ -31,18 +35,7 @@ def _build_transcript_text(transcript: list[dict]) -> str:
     return "\n".join(lines)
 
 
-def find_viral_clips(transcript: list[dict], video_duration: float) -> list[dict]:
-    """
-    Sends merged transcript to Gemini and returns 3-7 viral clip suggestions.
-
-    Args:
-        transcript:      flat merged list of {word, start, end, speaker} dicts
-        video_duration:  total duration of video in seconds
-
-    Returns:
-        list of dicts: {start_time, end_time, title, virality_score, justification}
-        sorted by virality_score descending
-    """
+def find_viral_clips(transcript: list[dict], video_duration: float) -> list[ViralClip]:
     transcript_text = _build_transcript_text(transcript)
 
     system_prompt = """You are a viral content strategist specializing in short-form video.
@@ -75,15 +68,21 @@ Find 3 to 7 segments between 30 and 90 seconds long with the highest viral poten
 All start_time and end_time values must be within 0 and {video_duration}.
 Return only the JSON array."""
 
-    model = genai.GenerativeModel(
-        model_name="gemini-2.0-flash",
-        system_instruction=system_prompt
+    print("[Analyzer] Sending transcript to OpenRouter (Qwen Model)...")
+    
+    # Using the new layout from the documentation provided
+    response = client.chat.send(
+        model="qwen/qwen3-32b",
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        stream=False,
     )
 
-    print("[Analyzer] Sending transcript to Gemini...")
-    response = model.generate_content(user_prompt)
-
-    raw = response.text.strip()
+    # Extract response text based on the OpenRouter schema
+    raw = response.choices[0].message.content.strip()
+    
     if raw.startswith("```"):
         raw = raw.split("```")[1]
         if raw.startswith("json"):
@@ -102,14 +101,14 @@ Return only the JSON array."""
         if end - start < 10:  # discard malformed clips under 10s
             continue
 
-        validated.append({
-            "start_time":     start,
-            "end_time":       end,
-            "title":          clip["title"],
-            "virality_score": score,
-            "justification":  clip["justification"]
-        })
+        validated.append(ViralClip(
+            start_time=start,
+            end_time=end,
+            title=clip["title"],
+            virality_score=score,
+            justification=clip["justification"]
+        ))
 
-    validated.sort(key=lambda c: c["virality_score"], reverse=True)
+    validated.sort(key=lambda c: c.virality_score, reverse=True)
     print(f"[Analyzer] Found {len(validated)} viral clips.")
     return validated
