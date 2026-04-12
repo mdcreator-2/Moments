@@ -38,21 +38,21 @@ def generate_ass_subtitles(transcript: List[Dict], start_time: float, end_time: 
             "base": "FFFFFF",
             "highlight": "00FFFF",  # Yellow in ASS BGR format
             "font": "Montserrat Black",
-            "size": 22,
-            "border": 2
+            "size": 32,
+            "border": 3
         },
         "clean_white": {
             "base": "FFFFFF",
             "highlight": "FFFF00",  # Cyan in ASS BGR format
             "font": "Inter",
-            "size": 18,
-            "border": 1
+            "size": 28,
+            "border": 2
         },
         "neon_glow": {
             "base": "FFFFFF",
             "highlight": "FF00FF",  # Magenta in ASS BGR format
             "font": "Outfit Bold",
-            "size": 24,
+            "size": 36,
             "border": 4
         }
     }
