@@ -14,16 +14,11 @@ def get_active_speaker(transcript: List[Dict], current_time: float) -> Optional[
     return None
 
 def get_speaker_mapping(transcript: List[Dict]) -> Dict[str, int]:
-    """
-    Extracts unique speakers from the transcript and maps them to a left-to-right index.
-    E.g., SPEAKER_00 -> 0 (left), SPEAKER_01 -> 1 (middle or right), etc.
-    """
     unique_speakers = set(segment.get('speaker', '') for segment in transcript)
     sorted_speakers = sorted([s for s in unique_speakers if s])
     return {speaker: i for i, speaker in enumerate(sorted_speakers)}
 
 def track_faces(video_path: str, start_time: float, end_time: float, transcript: List[Dict]) -> List[List[FaceCoordinate]]:
-    # Download the MediaPipe model file if it doesn't exist
     model_path = os.path.join(os.path.dirname(__file__), 'blaze_face_short_range.tflite')
     if not os.path.exists(model_path):
         print("Downloading MediaPipe face detection model...")
@@ -35,7 +30,6 @@ def track_faces(video_path: str, start_time: float, end_time: float, transcript:
     cap = cv2.VideoCapture(video_path)
     cap.set(cv2.CAP_PROP_POS_MSEC, start_time * 1000.0)
     
-    # Initialize the new Tasks API for Face Detection
     base_options = python.BaseOptions(model_asset_path=model_path)
     options = vision.FaceDetectorOptions(base_options=base_options, min_detection_confidence=0.5)
     detector = vision.FaceDetector.create_from_options(options)
@@ -45,7 +39,7 @@ def track_faces(video_path: str, start_time: float, end_time: float, transcript:
     all_frames_coords: List[List[FaceCoordinate]] = []
     
     alpha = 0.15
-    previous_smoothed: Dict[int, tuple] = {} # face_index -> (x, y, w, h)
+    previous_smoothed: Dict[int, tuple] = {}
     
     frame_index = 0
     
@@ -62,7 +56,6 @@ def track_faces(video_path: str, start_time: float, end_time: float, transcript:
         h, w, _ = frame.shape
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
-        # New API requires an mp.Image object
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
         results = detector.detect(mp_image)
         
@@ -75,7 +68,6 @@ def track_faces(video_path: str, start_time: float, end_time: float, transcript:
             raw_faces = []
             for detection in results.detections:
                 bboxC = detection.bounding_box
-                # The new API returns absolute pixel coordinates, not relative ones.
                 raw_x = bboxC.origin_x
                 raw_y = bboxC.origin_y
                 raw_w = bboxC.width
@@ -98,8 +90,6 @@ def track_faces(video_path: str, start_time: float, end_time: float, transcript:
                 
                 previous_smoothed[face_idx] = smoothed_box
                 
-                # If there's only 1 face on screen, it's automatically the active one.
-                # Otherwise, check if this face_idx matches our targeted left-to-right index.
                 is_active = (face_idx == target_face_index) or (len(raw_faces) == 1)
                 
                 frame_faces.append(FaceCoordinate(
@@ -123,7 +113,7 @@ def calculate_crop_coordinates(face_coords_per_frame: List[List[FaceCoordinate]]
     crop_rectangles: List[CropRectangle] = []
     crop_width = int(video_height * (9 / 16.0))
     
-    last_known_crop_x = int((video_width - crop_width) / 2) # Start centered by default
+    last_known_crop_x = int((video_width - crop_width) / 2)
     
     for frame_faces in face_coords_per_frame:
         if not frame_faces:
