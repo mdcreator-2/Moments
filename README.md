@@ -47,7 +47,7 @@ Turn long-form YouTube videos into viral short clips in minutes.
 ---
 
 ## 📁 Repository Structure
-
+```
 Moments/
 ├── .gitignore
 ├── CONTRIBUTING.md
@@ -105,6 +105,7 @@ Moments/
             ├── ProcessingPage.tsx
             ├── ResultsPage.tsx
             └── ClipPage.tsx
+```
 ---
 
 ## 🚀 Local Setup
