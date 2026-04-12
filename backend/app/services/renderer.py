@@ -8,7 +8,7 @@ def escape_path_for_ffmpeg(path: str) -> str:
     p = p.replace(':', '\\:')
     return p
 
-def render_short(video_path: str, crop_coords: list, subtitle_path: str, start_time: float, end_time: float, output_path: str) -> str:
+def render_short(video_path: str, audio_path: str, crop_coords: list, subtitle_path: str, start_time: float, end_time: float, output_path: str) -> str:
     """
     Renders the final vertical video using the calculated average crop and burning the ASS subtitles.
     Attempts NVENC hardware acceleration first, falls back to libx264 CPU rendering.
@@ -34,9 +34,13 @@ def render_short(video_path: str, crop_coords: list, subtitle_path: str, start_t
         "-ss", str(start_time),
         "-to", str(end_time),
         "-i", video_path,
+        "-ss", str(start_time),
+        "-to", str(end_time),
+        "-i", audio_path,
         "-vf", vf_string,
         "-c:a", "aac",
-        "-b:a", "128k"
+        "-b:a", "128k",
+        "-shortest"
     ]
     
     nvenc_cmd = base_cmd + ["-c:v", "h264_nvenc", "-preset", "p4", output_path]
