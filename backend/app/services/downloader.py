@@ -1,32 +1,34 @@
-import yt_dlp
 import os
-import glob
+from pytubefix import YouTube
 
-def download_video(url,video_id):
-    output_path = f"/tmp/clipper/{video_id}"
-    os.makedirs(output_path,exist_ok=True)
-    ydl_opts = {
-        'format': 'b',  # Unconditional fallback to pre-combined 720p/360p MP4 guaranteed to bypass DASH locks
-        'outtmpl': f'{output_path}/video.%(ext)s',
-    }
-    
-    # Secure Cookie Injection for YouTube Bot-Bypass
-    if os.path.exists("cookies.txt"):
-        ydl_opts['cookiefile'] = 'cookies.txt'
+def download_video(url, video_id):
+    try:
+        output_path = f"/tmp/clipper/{video_id}"
+        os.makedirs(output_path, exist_ok=True)
         
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-
-    title = info.get("title", "")
-    duration = info.get("duration", 0)
-    
-    # Dynamically find the file (yt-dlp will save it to video.mp4 or video.webm)
-    video_search = glob.glob(f"{output_path}/video.*")
-    final_path = video_search[0] if video_search else f"{output_path}/video.mp4"
-    
-    return {
-           "video_path": final_path,
-           "audio_path": final_path,   # The AssemblyAI client natively extracts audio streams from mp4 payloads flawlessly!
-           "title": title,
-           "duration": duration
-    }
+        print(f"[Downloader] Initializing Pytubefix Bot Bypass for URL: {url}")
+        
+        # Pytubefix automatically leverages an embedded Node runtime to decipher YouTube's 
+        # proof-of-work (PoTokens) dynamically, evading the exact block yt-dlp was hitting.
+        yt = YouTube(url)
+        
+        # Search exclusively for a pre-mixed, hardware-accelerated friendly MP4 payload (usually 720p)
+        stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
+        
+        if not stream:
+            print("[Downloader] Progressive stream missing. Triggering absolute mp4 fallback...")
+            stream = yt.streams.filter(file_extension='mp4').first()
+            
+        print(f"[Downloader] Located stream payload: {stream}. Initiating hardware download...")
+        
+        final_path = stream.download(output_path=output_path, filename="video.mp4")
+        
+        return {
+            "video_path": final_path,
+            "audio_path": final_path,
+            "title": yt.title,
+            "duration": yt.length
+        }
+    except Exception as e:
+        print(f"[Downloader] Fatal Error pulling video via Pytubefix: {e}")
+        raise e
