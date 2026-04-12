@@ -1,83 +1,143 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 
 const ProcessingPage = () => {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const [status, setStatus] = useState('pending');
+    
+    useEffect(() => {
+        if (!id) return;
+        
+        const interval = setInterval(async () => {
+            try {
+                const data = await api.getVideoStatus(id);
+                setStatus(data.status); // downloading, transcribing, analyzing, clips_ready, or error
+                
+                if (data.status === 'clips_ready') {
+                    clearInterval(interval);
+                    navigate(`/results/${id}`);
+                }
+                if (data.status === 'error') {
+                    clearInterval(interval);
+                }
+            } catch (err) {
+                console.error("Status polling failed:", err);
+            }
+        }, 2000);
+        
+        return () => clearInterval(interval);
+    }, [id, navigate]);
+
+    // UI State Resolvers
+    const statuses = ['pending', 'downloading', 'transcribing', 'analyzing', 'clips_ready'];
+    const currentIndex = statuses.indexOf(status) === -1 ? 0 : statuses.indexOf(status);
+    
+    const isCompleted = (step: number) => {
+        if (status === 'error') return false;
+        return currentIndex > step;
+    };
+    
+    const isActive = (step: number) => {
+        if (status === 'error') return false;
+        return currentIndex === step;
+    };
+
     return (
         <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
             {/* TopNavBar */}
             <nav className="fixed top-0 w-full z-50 bg-[#060e20]/80 backdrop-blur-xl border-b-[1.5px] border-[#40485d]/15 shadow-[0_20px_40px_rgba(0,0,0,0.3)] flex justify-between items-center px-8 py-4 max-w-full">
                 <div className="flex items-center gap-8">
                     <span className="text-2xl font-bold bg-gradient-to-br from-[#ba9eff] to-[#8455ef] bg-clip-text text-transparent font-headline tracking-tight">Moments</span>
-                    <div className="hidden md:flex items-center gap-6">
-                        <a className="text-[#dee5ff]/60 hover:text-[#ba9eff] transition-colors duration-300 font-headline tracking-tight" href="#">Projects</a>
-                        <a className="text-[#dee5ff]/60 hover:text-[#ba9eff] transition-colors duration-300 font-headline tracking-tight" href="#">Templates</a>
-                        <a className="text-[#dee5ff]/60 hover:text-[#ba9eff] transition-colors duration-300 font-headline tracking-tight" href="#">Assets</a>
-                    </div>
-                </div>
-                <div className="flex items-center gap-4">
-                    <button className="material-symbols-outlined text-[#dee5ff]/60 hover:text-[#ba9eff] active:scale-95 transition-transform">account_circle</button>
                 </div>
             </nav>
 
             {/* Main Content */}
             <main className="flex-grow flex items-center justify-center pt-24 pb-12 px-6">
-                {/* Background Ambient Light */}
                 <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
                 
                 <div className="relative z-10 w-full max-w-2xl">
-                    {/* Header Section */}
                     <div className="text-center mb-12">
-                        <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4 text-on-surface">
-                            Processing your <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Moment</span>
-                        </h1>
-                        <p className="text-on-surface-variant font-body text-lg max-w-md mx-auto">
-                            Sit back while our neural engine transforms your raw footage into viral gold.
-                        </p>
+                        {status === 'error' ? (
+                            <>
+                                <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4 text-error">
+                                    Analysis Failed
+                                </h1>
+                                <p className="text-on-surface-variant font-body text-lg max-w-md mx-auto">
+                                    Our ethereal engine couldn't grab the video data. Verify the YouTube URL is public.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <h1 className="font-headline text-4xl md:text-5xl font-bold tracking-tight mb-4 text-on-surface">
+                                    Processing your <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Moment</span>
+                                </h1>
+                                <p className="text-on-surface-variant font-body text-lg max-w-md mx-auto">
+                                    Sit back while our neural engine transforms your raw footage into viral gold.
+                                </p>
+                            </>
+                        )}
                     </div>
 
-                    {/* Timeline Card */}
                     <div className="glass-card rounded-xl p-8 md:p-12 border-t-[1.5px] border-l-[1.5px] border-[#40485d]/15 shadow-2xl">
                         <div className="space-y-10 relative">
                             {/* Connector Line */}
                             <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-outline-variant/30"></div>
                             
-                            {/* Step 1: Completed */}
-                            <div className="flex items-start gap-6 relative group">
-                                <div className="relative z-10 w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center shrink-0 border border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]">
-                                    <span className="material-symbols-outlined text-secondary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                            {/* Step 1: Downloading */}
+                            <div className={`flex items-start gap-6 relative group ${!isCompleted(1) && !isActive(1) ? 'opacity-40 grayscale' : ''}`}>
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${
+                                    isCompleted(1) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
+                                    isActive(1) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
+                                    'bg-surface-container border-outline-variant/30'
+                                }`}>
+                                    <span className={`material-symbols-outlined ${isCompleted(1) ? 'text-secondary' : isActive(1) ? 'text-primary animate-spin' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                                        {isCompleted(1) ? 'check_circle' : isActive(1) ? 'sync' : 'cloud_download'}
+                                    </span>
                                 </div>
                                 <div className="pt-1">
-                                    <h3 className="font-headline text-lg font-semibold text-on-surface">Downloading Video</h3>
-                                    <p className="text-on-surface-variant text-sm mt-1">Source file retrieved from cloud storage (4.2GB)</p>
+                                    <h3 className={`font-headline text-lg ${isActive(1) ? 'font-bold text-primary' : 'font-semibold text-on-surface'}`}>Downloading Video</h3>
+                                    <p className="text-on-surface-variant text-sm mt-1">{isActive(1) ? 'Extracting high-quality raw source...' : 'Source file retrieved from cloud storage'}</p>
                                 </div>
                             </div>
                             
-                            {/* Step 2: Completed */}
-                            <div className="flex items-start gap-6 relative group">
-                                <div className="relative z-10 w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center shrink-0 border border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]">
-                                    <span className="material-symbols-outlined text-secondary text-xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                            {/* Step 2: Transcribing */}
+                            <div className={`flex items-start gap-6 relative group ${!isCompleted(2) && !isActive(2) ? 'opacity-40 grayscale' : ''}`}>
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${
+                                    isCompleted(2) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
+                                    isActive(2) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
+                                    'bg-surface-container border-outline-variant/30'
+                                }`}>
+                                    <span className={`material-symbols-outlined ${isCompleted(2) ? 'text-secondary' : isActive(2) ? 'text-primary animate-pulse' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                                        {isCompleted(2) ? 'check_circle' : isActive(2) ? 'graphic_eq' : 'record_voice_over'}
+                                    </span>
                                 </div>
                                 <div className="pt-1">
-                                    <h3 className="font-headline text-lg font-semibold text-on-surface">Transcribing &amp; Identifying Speakers</h3>
-                                    <p className="text-on-surface-variant text-sm mt-1">Whisper Large v3 active • 3 distinct voices detected</p>
+                                    <h3 className={`font-headline text-lg ${isActive(2) ? 'font-bold text-primary' : 'font-semibold text-on-surface'}`}>Transcribing &amp; Diarization</h3>
+                                    <p className="text-on-surface-variant text-sm mt-1">{isActive(2) ? 'Deep learning tracking speaker segments...' : 'Whisper & Pyannote processing complete'}</p>
                                 </div>
                             </div>
                             
-                            {/* Step 3: Current */}
-                            <div className="flex items-start gap-6 relative group">
-                                <div className="relative z-10 w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center shrink-0 border border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow">
-                                    <span className="material-symbols-outlined text-primary text-xl animate-spin">auto_awesome</span>
+                            {/* Step 3: Analyzing */}
+                            <div className={`flex items-start gap-6 relative group ${!isCompleted(3) && !isActive(3) ? 'opacity-40 grayscale' : ''}`}>
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${
+                                    isCompleted(3) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
+                                    isActive(3) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
+                                    'bg-surface-container border-outline-variant/30'
+                                }`}>
+                                    <span className={`material-symbols-outlined ${isCompleted(3) ? 'text-secondary' : isActive(3) ? 'text-primary animate-spin' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                                        {isCompleted(3) ? 'check_circle' : isActive(3) ? 'auto_awesome' : 'troubleshoot'}
+                                    </span>
                                 </div>
                                 <div className="pt-1">
-                                    <h3 className="font-headline text-lg font-bold text-primary">AI Analyzing for Viral Moments</h3>
-                                    <p className="text-on-surface text-sm mt-1 font-medium italic opacity-80">Evaluating narrative flow and peak engagement markers...</p>
-                                    <div className="mt-4 w-full h-1.5 bg-surface-container-lowest rounded-full overflow-hidden">
-                                        <div className="h-full bg-gradient-to-r from-primary to-primary-dim w-[64%] rounded-full shadow-[0_0_10px_rgba(186,158,255,0.5)]"></div>
-                                    </div>
+                                    <h3 className={`font-headline text-lg ${isActive(3) ? 'font-bold text-primary' : 'font-semibold text-on-surface'}`}>AI Analyzing for Viral Moments</h3>
+                                    <p className="text-on-surface text-sm mt-1 font-medium italic opacity-80">{isActive(3) ? 'Evaluating narrative flow and peak engagement markers...' : 'Viral score arrays mapped'}</p>
                                 </div>
                             </div>
                             
-                            {/* Step 4: Pending */}
-                            <div className="flex items-start gap-6 relative opacity-40 grayscale group">
+                            {/* Step 4: Clips Ready (Redirect wait state) */}
+                            <div className={`flex items-start gap-6 relative group ${status !== 'clips_ready' ? 'opacity-40 grayscale' : ''}`}>
                                 <div className="relative z-10 w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant/30">
                                     <span className="material-symbols-outlined text-on-surface-variant text-xl">video_settings</span>
                                 </div>
@@ -87,42 +147,21 @@ const ProcessingPage = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Insight Toast-style Info */}
-                        <div className="mt-12 p-4 glass-card border-l-4 border-tertiary rounded-lg bg-surface-container-highest/30 flex items-start gap-4">
-                            <span className="material-symbols-outlined text-tertiary">info</span>
-                            <div>
-                                <p className="font-label text-xs uppercase tracking-widest text-tertiary font-bold mb-1">AI Pulse Insight</p>
-                                <p className="text-on-surface-variant text-sm leading-relaxed">High energy segment detected at <span className="text-on-surface font-semibold">12:44</span>. Our engine is prioritizing this for the main vertical clip.</p>
-                            </div>
-                        </div>
                     </div>
 
-                    {/* Card Bottom Meta */}
                     <div className="flex items-center justify-between mt-8 px-4">
                         <div className="flex items-center gap-2">
-                            <span className="inline-block w-2 h-2 rounded-full bg-secondary pulse-glow"></span>
-                            <span className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Live Pipeline: US-East-1</span>
+                            <span className={`inline-block w-2 h-2 rounded-full ${status === 'error' ? 'bg-error' : 'bg-secondary pulse-glow'}`}></span>
+                            <span className="font-label text-xs uppercase tracking-widest text-on-surface-variant">Live Pipeline Status: {status}</span>
                         </div>
-                        <div className="text-on-surface-variant text-xs font-label uppercase tracking-widest">Est. Time Remaining: 2m 14s</div>
+                        {status === 'error' && (
+                            <button onClick={() => navigate("/")} className="text-primary text-xs uppercase tracking-widest hover:underline cursor-pointer">
+                                Try Another Link
+                            </button>
+                        )}
                     </div>
                 </div>
             </main>
-
-            {/* Footer */}
-            <footer className="w-full py-8 flex flex-col items-center gap-4 w-full mt-auto bg-transparent">
-                <div className="flex items-center gap-6">
-                    <a className="font-body text-xs uppercase tracking-widest text-[#dee5ff]/40 hover:text-[#53ddfc] transition-colors" href="#">Support</a>
-                    <a className="font-body text-xs uppercase tracking-widest text-[#dee5ff]/40 hover:text-[#53ddfc] transition-colors" href="#">Privacy Policy</a>
-                    <a className="font-body text-xs uppercase tracking-widest text-[#dee5ff]/40 hover:text-[#53ddfc] transition-colors" href="#">Terms of Service</a>
-                </div>
-                <p className="font-body text-xs uppercase tracking-widest text-[#dee5ff]/40">© 2024 Moments AI. Processing secured by Ethereal Engine.</p>
-            </footer>
-
-            {/* Decorative Background Image */}
-            <div className="fixed inset-0 -z-10 opacity-30 pointer-events-none overflow-hidden">
-                <img className="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-XTNE8snDUz8ouj9JrCCSO0Tyy8Fiug764hnoScz00e-Q1Ry5dE2_cISGjHhigpDLlEYAQ5JGoLaflvAm1KONrotptg-XqG0TVNe0p_zCFj2XNTh1_W0l2yzyXS1wUJHrev8WUF1xmqDnuf2IRy0nWT5ZOFEtBQpzdgvYvPxquNBb-H8coKB4tKx4YtslqfSUDcVuWPSBauVPxscPQwRhyObxe6BPJumwXshIhMCTL2vlDMpSzk8JhLXe447xrGW9KoOP02B4Xw4" alt="Abstract Background" />
-            </div>
         </div>
     );
 };

@@ -34,5 +34,10 @@ export const api = {
   getClipStatus: async (videoId: string, clipIndex: number) => {
     const res = await apiClient.get(`/api/videos/${videoId}/clips/${clipIndex}/status`);
     return res.data; // { status, render_url }
+  },
+
+  // Helper for static src URLs in React img tags
+  getThumbnailUrl: (videoId: string, clipIndex: number) => {
+    return `/api/videos/${videoId}/clips/${clipIndex}/thumbnail`;
   }
 };

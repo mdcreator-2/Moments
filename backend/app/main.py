@@ -87,3 +87,10 @@ async def download_clip(video_id: str, clip_index: int):
     if not url or not os.path.exists(url):
         raise HTTPException(status_code=404, detail="Rendered file no longer exists or hasn't finished")
     return FileResponse(url, media_type="video/mp4", filename=f"moment_{clip_index}.mp4")
+
+@app.get("/api/videos/{video_id}/clips/{clip_index}/thumbnail")
+async def get_clip_thumbnail(video_id: str, clip_index: int):
+    thumb_path = f"/tmp/clipper/{video_id}/thumb_{clip_index}.jpg"
+    if os.path.exists(thumb_path):
+        return FileResponse(thumb_path, media_type="image/jpeg")
+    raise HTTPException(status_code=404, detail="Thumbnail not ready or unavailable")

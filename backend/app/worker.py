@@ -50,7 +50,22 @@ while True:
             # Pydantic serialization
             clips_dict = [c.model_dump() for c in clips] if len(clips) > 0 and hasattr(clips[0], 'model_dump') else clips
             r.set(f"{video_id}:clips", json.dumps(clips_dict))
-            
+            # --- Thumbnail Extraction ---
+            try:
+                print(f"[Worker] Extracting thumbnails for {len(clips_dict)} clips...")
+                cap = cv2.VideoCapture(res["video_path"])
+                for i, clip in enumerate(clips_dict):
+                    # We grab a frame 0.5 seconds into the clip as the thumbnail
+                    cap.set(cv2.CAP_PROP_POS_MSEC, (clip["start_time"] + 0.5) * 1000)
+                    success, frame = cap.read()
+                    if success:
+                        thumb_path = f"/tmp/clipper/{video_id}/thumb_{i}.jpg"
+                        cv2.imwrite(thumb_path, frame)
+                cap.release()
+            except Exception as thumb_e:
+                print(f"[Worker] Warning: Failed to extract thumbnails - {thumb_e}")
+            # ---------------------------
+
             update_status(video_id, "clips_ready")
 
         except Exception as e:
