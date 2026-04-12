@@ -1,12 +1,12 @@
 import os
 import json
-from app.config import GEMINI_API_KEY  # You can rename this to OPENROUTER_API_KEY in your config later
+from app.config import OPENROUTER_API_KEY  # You can rename this to OPENROUTER_API_KEY in your config later
 from app.models import ViralClip
 from openrouter import OpenRouter
 
 # Initialize the new OpenRouter client
 client = OpenRouter(
-    api_key=GEMINI_API_KEY, # Make sure to put your friend's key in the .env under GEMINI_API_KEY, or change this variable
+    api_key=OPENROUTER_API_KEY, # Make sure to put your friend's key in the .env under GEMINI_API_KEY, or change this variable
     server_url="https://ai.hackclub.com/proxy/v1",
 )
 

@@ -1,24 +1,25 @@
 # === Core Backend ===
-fastapi
-uvicorn[standard]
-python-dotenv
-pydantic
-redis
+fastapi>=0.115.0,<1.0.0
+uvicorn[standard]>=0.30.0,<1.0.0
+python-dotenv>=1.0.1,<2.0.0
+pydantic>=2.8.0,<3.0.0
+redis>=5.0.0,<6.0.0
+python-multipart>=0.0.9,<1.0.0
 
-yt-dlp
+# === Video Ingestion ===
+pytubefix>=8.9.0,<9.0.0
 
+# === Transcription / Diarization ===
+assemblyai>=0.33.0,<1.0.0
 
-#Install torch first - pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+# === AI Clip Analysis ===
+openrouter>=1.0.0
 
-whisperx
+# === Video / Vision Processing ===
+opencv-python>=4.10.0.84,<5.0.0
+mediapipe>=0.10.14,<1.0.0
+numpy>=1.26.0,<3.0.0
 
-
-pyannote.audio
-
-google-generativeai
-
-
-opencv-python
-mediapipe
-
-firebase-admin
+# === Utilities ===
+requests>=2.32.0,<3.0.0
+tqdm>=4.66.0,<5.0.0
