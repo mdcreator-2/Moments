@@ -1,17 +1,45 @@
-:root {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color: #e0e0e0;
-  background-color: #0a0a0f;
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Manrope:wght@200;300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-background text-on-surface font-body min-h-screen antialiased;
+  }
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer components {
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+    }
+    
+    .glass-card {
+        background: rgba(25, 37, 64, 0.4);
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(40px);
+        border: 1.5px solid rgba(64, 72, 93, 0.15);
+    }
+    
+    .hero-gradient-text {
+        background: linear-gradient(135deg, #ba9eff 0%, #53ddfc 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .primary-gradient {
+        background: linear-gradient(135deg, #ba9eff 0%, #8455ef 100%);
+    }
+
+    .pulse-glow {
+        animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
 }
 
-body {
-  min-height: 100vh;
+@keyframes pulse-ring {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .5; }
 }
