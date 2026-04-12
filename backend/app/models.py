@@ -10,6 +10,9 @@ class VideoResponse(BaseModel):
 class VideoStatus(BaseModel):
     status: str
 
+class ClipRenderRequest(BaseModel):
+    subtitle_style: str = "bold_yellow"
+
 class wordSegment(BaseModel):
     word: str
     start: float
