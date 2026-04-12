@@ -1,5 +1,6 @@
-import yt_dlp 
+import yt_dlp
 import os
+import glob
 
 def download_video(url,video_id):
     output_path = f"/tmp/clipper/{video_id}"
@@ -12,7 +13,6 @@ def download_video(url,video_id):
     }
     ydl_opts_audio = {
         'format': 'bestaudio',
-        'merge_output_format': 'wav',
         'outtmpl': f'{output_path}/audio.%(ext)s'
     }
     with yt_dlp.YoutubeDL(ydl_opts_video) as ydl:
@@ -22,10 +22,14 @@ def download_video(url,video_id):
     info = ydl.extract_info(url, download=False)
     title = info.get("title", "")
     duration = info.get("duration", 0)
+    
+    # Dynamically find the files since yt-dlp might use .webm, .mp4, .m4a etc.
+    video_search = glob.glob(f"{output_path}/video.*")
+    audio_search = glob.glob(f"{output_path}/audio.*")
+    
     return {
-                 
-           "video_path": output_path+"/video.mp4",
-           "audio_path": output_path+"/audio.wav",
+           "video_path": video_search[0] if video_search else output_path+"/video.mp4",
+           "audio_path": audio_search[0] if audio_search else output_path+"/audio.wav",
            "title": title,
            "duration": duration
     }

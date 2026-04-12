@@ -22,3 +22,21 @@ class ViralClip(BaseModel):
     title: str
     virality_score: float
     justification: str
+
+class FaceCoordinate(BaseModel):
+    frame_index: int
+    timestamp: float
+    x: float
+    y: float
+    width: float
+    height: float
+    speaker_label: str
+    is_active_speaker: bool
+
+class CropRectangle(BaseModel):
+    frame_index: int
+    timestamp: float
+    x: int
+    y: int
+    width: int
+    height: int
