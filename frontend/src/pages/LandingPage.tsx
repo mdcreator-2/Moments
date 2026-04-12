@@ -28,9 +28,9 @@ const LandingPage = () => {
     return (
         <div className="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen flex flex-col">
             {/* TopNavBar */}
-            <header className="fixed top-0 w-full z-50 bg-[#060e20]/60 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl shadow-[0_20px_40px_rgba(0,0,0,0.3)] border-b border-primary/10">
                 <nav className="flex justify-between items-center max-w-7xl mx-auto px-8 h-20">
-                    <div className="text-2xl font-bold bg-gradient-to-br from-[#ba9eff] to-[#8455ef] bg-clip-text text-transparent font-headline tracking-tight">
+                    <div className="text-2xl font-bold bg-gradient-to-br from-primary to-primary-dim bg-clip-text text-transparent font-headline tracking-tight">
                         Moments
                     </div>
                     {/* Removed unneeded links and login buttons for Hackathon MVP */}
@@ -152,11 +152,11 @@ const LandingPage = () => {
             </main>
 
             {/* Footer */}
-            <footer className="bg-[#060e20] w-full py-12 border-t border-[#40485d]/15 mt-auto">
+            <footer className="bg-background w-full py-12 border-t border-outline/10 mt-auto">
                 <div className="flex flex-col justify-center items-center max-w-7xl mx-auto px-8 gap-6">
                     <div className="flex flex-col gap-2 items-center text-center">
-                        <span className="font-headline font-bold text-[#dee5ff] text-xl">Moments</span>
-                        <p className="font-body text-sm tracking-wide text-[#dee5ff]/50">© 2024 Moments AI. Processing secured by Ethereal Engine.</p>
+                        <span className="font-headline font-bold text-on-surface text-xl">Moments</span>
+                        <p className="font-body text-sm tracking-wide text-on-surface-variant">© 2024 Moments AI. Processing secured by Ethereal Engine.</p>
                     </div>
                 </div>
             </footer>

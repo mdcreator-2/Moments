@@ -18,20 +18,20 @@
     }
     
     .glass-card {
-        background: rgba(25, 37, 64, 0.4);
+        background: rgba(18, 18, 18, 0.4);
         backdrop-filter: blur(40px);
         -webkit-backdrop-filter: blur(40px);
-        border: 1.5px solid rgba(64, 72, 93, 0.15);
+        border: 1.5px solid rgba(255, 49, 49, 0.1);
     }
     
     .hero-gradient-text {
-        background: linear-gradient(135deg, #ba9eff 0%, #53ddfc 100%);
+        background: linear-gradient(135deg, #ff3131 0%, #800000 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
     
     .primary-gradient {
-        background: linear-gradient(135deg, #ba9eff 0%, #8455ef 100%);
+        background: linear-gradient(135deg, #ff3131 0%, #cc0000 100%);
     }
 
     .pulse-glow {

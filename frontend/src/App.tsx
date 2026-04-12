@@ -11,7 +11,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/processing/:id" element={<ProcessingPage />} />
         <Route path="/results/:id" element={<ResultsPage />} />
-        <Route path="/results/:id/clip/:clipId" element={<div className="p-10 text-center text-xl text-purple-400">Final Render Player goes here</div>} />
+        <Route path="/results/:id/clip/:clipId" element={<div className="p-10 text-center text-xl text-primary font-headline">Final Render Player goes here</div>} />
       </Routes>
     </BrowserRouter>
   );

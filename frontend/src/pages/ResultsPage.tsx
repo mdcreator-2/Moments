@@ -83,7 +83,7 @@ const ClipCard = ({ clip, index, videoId }: { clip: any, index: number, videoId:
                     <div className={`px-3 py-1 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-wider ${renderStatus === 'rendered' ? 'bg-secondary/80 text-on-secondary' : 'bg-surface-container-lowest/80 backdrop-blur-md text-on-surface'}`}>
                         {formatTime(clip.start_time)} - {formatTime(clip.end_time)}
                     </div>
-                    <div className="w-12 h-12 rounded-full bg-surface-container-lowest/80 backdrop-blur-md border border-secondary/30 flex items-center justify-center shadow-[0_0_15px_rgba(83,221,252,0.3)]">
+                    <div className="w-12 h-12 rounded-full bg-surface-container-lowest/80 backdrop-blur-md border border-secondary/30 flex items-center justify-center shadow-[0_0_15px_rgba(255,49,49,0.3)]">
                         <div className="text-center">
                             <div className="text-[14px] font-headline font-bold text-secondary leading-none">{score}</div>
                             {renderStatus !== 'rendering' && <div className="text-[6px] text-secondary/70 font-bold uppercase">Score</div>}
@@ -150,10 +150,10 @@ const ResultsPage = () => {
 
     return (
         <div className="bg-background text-on-background font-body selection:bg-primary/30 selection:text-primary min-h-screen flex flex-col">
-            <header className="w-full sticky top-0 z-50 bg-[#060e20]/60 backdrop-blur-xl border-b border-[#40485d]/15 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+            <header className="w-full sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-outline/10 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
                 <div className="flex justify-between items-center px-8 py-4 max-w-full">
                     <div className="flex items-center gap-8">
-                        <span className="text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-[#ba9eff] to-[#8455ef] font-headline">Moments</span>
+                        <span className="text-2xl font-bold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-dim font-headline">Moments</span>
                     </div>
                 </div>
             </header>

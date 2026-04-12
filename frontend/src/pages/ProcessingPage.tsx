@@ -45,11 +45,11 @@ const ProcessingPage = () => {
     };
 
     return (
-        <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
+        <div className="bg-background font-body text-on-surface min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
             {/* TopNavBar */}
-            <nav className="fixed top-0 w-full z-50 bg-[#060e20]/80 backdrop-blur-xl border-b-[1.5px] border-[#40485d]/15 shadow-[0_20px_40px_rgba(0,0,0,0.3)] flex justify-between items-center px-8 py-4 max-w-full">
+            <nav className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-outline/10 shadow-[0_20px_40px_rgba(0,0,0,0.3)] flex justify-between items-center px-8 py-4 max-w-full">
                 <div className="flex items-center gap-8">
-                    <span className="text-2xl font-bold bg-gradient-to-br from-[#ba9eff] to-[#8455ef] bg-clip-text text-transparent font-headline tracking-tight">Moments</span>
+                    <span className="text-2xl font-bold bg-gradient-to-br from-primary to-primary-dim bg-clip-text text-transparent font-headline tracking-tight">Moments</span>
                 </div>
             </nav>
 
@@ -80,15 +80,15 @@ const ProcessingPage = () => {
                         )}
                     </div>
 
-                    <div className="glass-card rounded-xl p-8 md:p-12 border-t-[1.5px] border-l-[1.5px] border-[#40485d]/15 shadow-2xl">
+                    <div className="glass-card rounded-xl p-8 md:p-12 border-t border-l border-outline/10 shadow-2xl">
                         <div className="space-y-10 relative">
                             {/* Connector Line */}
                             <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-outline-variant/30"></div>
 
                             {/* Step 1: Downloading */}
                             <div className={`flex items-start gap-6 relative group ${!isCompleted(1) && !isActive(1) ? 'opacity-40 grayscale' : ''}`}>
-                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(1) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
-                                    isActive(1) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(1) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(255,49,49,0.15)]' :
+                                    isActive(1) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(255,49,49,0.25)] pulse-glow' :
                                         'bg-surface-container border-outline-variant/30'
                                     }`}>
                                     <span className={`material-symbols-outlined ${isCompleted(1) ? 'text-secondary' : isActive(1) ? 'text-primary animate-spin' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -103,8 +103,8 @@ const ProcessingPage = () => {
 
                             {/* Step 2: Transcribing */}
                             <div className={`flex items-start gap-6 relative group ${!isCompleted(2) && !isActive(2) ? 'opacity-40 grayscale' : ''}`}>
-                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(2) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
-                                    isActive(2) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(2) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(255,49,49,0.15)]' :
+                                    isActive(2) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(255,49,49,0.25)] pulse-glow' :
                                         'bg-surface-container border-outline-variant/30'
                                     }`}>
                                     <span className={`material-symbols-outlined ${isCompleted(2) ? 'text-secondary' : isActive(2) ? 'text-primary animate-pulse' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
@@ -119,8 +119,8 @@ const ProcessingPage = () => {
 
                             {/* Step 3: Analyzing */}
                             <div className={`flex items-start gap-6 relative group ${!isCompleted(3) && !isActive(3) ? 'opacity-40 grayscale' : ''}`}>
-                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(3) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
-                                    isActive(3) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(3) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(255,49,49,0.15)]' :
+                                    isActive(3) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(255,49,49,0.25)] pulse-glow' :
                                         'bg-surface-container border-outline-variant/30'
                                     }`}>
                                     <span className={`material-symbols-outlined ${isCompleted(3) ? 'text-secondary' : isActive(3) ? 'text-primary animate-spin' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
