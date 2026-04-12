@@ -10,6 +10,8 @@ from app.services.downloader import download_video
 from app.services.transcriber import transcribe_audio
 from app.services.analyzer import find_viral_clips
 from app.services.face_tracker import track_faces, calculate_crop_coordinates
+from app.services.subtitle_generator import generate_ass_subtitles
+from app.services.renderer import render_short
 
 def test_full_pipeline(youtube_url: str):
     print("\n" + "="*50)
@@ -55,31 +57,31 @@ def test_full_pipeline(youtube_url: str):
     crops = calculate_crop_coordinates(face_data, width, height)
     
     print("\n" + "="*50)
-    print("=== 5. DYNAMIC PREVIEW ===")
+    print("=== 5. GENERATING SUBTITLES ===")
     print("="*50)
-    print("Spawning OpenCV Window... Press 'q' to stop.")
-    cap.set(cv2.CAP_PROP_POS_MSEC, top_clip.start_time * 1000)
+    sub_path = os.path.abspath(os.path.join(os.path.dirname(video_path), "subs.ass"))
+    generate_ass_subtitles(transcript, top_clip.start_time, top_clip.end_time, sub_path, style="bold_yellow")
+    
+    print("\n" + "="*50)
+    print("=== 6. RENDERING FINAL VIDEO ===")
+    print("="*50)
+    out_path = os.path.abspath(os.path.join(os.path.dirname(video_path), "final_short.mp4"))
+    render_short(video_path, audio_path, crops, sub_path, top_clip.start_time, top_clip.end_time, out_path)
+    
+    print("\n" + "="*50)
+    print("=== 7. FINAL PLAYBACK ===")
+    print("="*50)
+    print(f"Playing finalized clip located at: {out_path}")
+    
+    cap = cv2.VideoCapture(out_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     
-    for frame_idx, crop in enumerate(crops):
+    while cap.isOpened():
         ret, frame = cap.read()
         if not ret:
             break
             
-        # Draw the target vertical 9:16 crop window
-        cv2.rectangle(frame, (crop.x, crop.y), (crop.x + crop.width, crop.y + crop.height), (0, 255, 0), 4)
-        
-        current_time = top_clip.start_time + (float(frame_idx) / fps)
-        
-        # Identify who is speaking right now from the transcript
-        active_spk = next((s['speaker'] for s in transcript if s['start'] <= current_time <= s['end']), "Unknown")
-        
-        cv2.putText(frame, f"Active Speaker: {active_spk}", (50, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        cv2.putText(frame, f"Clip Time: {current_time:.2f}s", (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
-        
-        cv2.imshow("Full E2E Tracker E2E Preview", frame)
-        
-        # Mimic actual playback speed
+        cv2.imshow("Final Rendered Full Pipeline", frame)
         if cv2.waitKey(int(1000/fps)) & 0xFF == ord('q'):
             break
             
