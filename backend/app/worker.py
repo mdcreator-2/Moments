@@ -59,6 +59,7 @@ while True:
                     cap.set(cv2.CAP_PROP_POS_MSEC, (clip["start_time"] + 0.5) * 1000)
                     success, frame = cap.read()
                     if success:
+                        os.makedirs(f"/tmp/clipper/{video_id}", exist_ok=True)
                         thumb_path = f"/tmp/clipper/{video_id}/thumb_{i}.jpg"
                         cv2.imwrite(thumb_path, frame)
                 cap.release()

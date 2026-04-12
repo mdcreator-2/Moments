@@ -36,7 +36,7 @@ const ClipCard = ({ clip, index, videoId }: { clip: any, index: number, videoId:
     };
 
     const thumbnailUrl = api.getThumbnailUrl(videoId, index);
-    
+
     // Time formatting helper
     const formatTime = (secs: number) => {
         const mins = Math.floor(secs / 60);
@@ -45,23 +45,23 @@ const ClipCard = ({ clip, index, videoId }: { clip: any, index: number, videoId:
     };
 
     // Calculate a pseudo "Score" (fallback to some math if missing)
-    const score = clip.viral_score || Math.floor(Math.random() * (99 - 80 + 1) + 80);
+    const score = clip.virality_score ?? Math.floor(Math.random() * (99 - 80 + 1) + 80);
 
     return (
         <div className={`glass-card ghost-border-top-left rounded-xl overflow-hidden flex flex-col group transition-all duration-500 ${renderStatus === 'rendered' ? 'border-secondary/20 bg-secondary/5' : renderStatus === 'rendering' ? 'opacity-90' : 'hover:translate-y-[-4px]'}`}>
             <div className="aspect-[9/16] relative bg-surface-container-lowest overflow-hidden">
                 {/* Dynamically Load Extracted Thumbnails instead of static art */}
-                <img 
-                    alt="Clip Thumbnail" 
-                    className={`w-full h-full object-cover transition-all duration-700 ${renderStatus === 'rendering' ? 'opacity-40 grayscale' : 'opacity-60 group-hover:scale-110 group-hover:opacity-80'}`} 
-                    src={thumbnailUrl} 
+                <img
+                    alt="Clip Thumbnail"
+                    className={`w-full h-full object-cover transition-all duration-700 ${renderStatus === 'rendering' ? 'opacity-40 grayscale' : 'opacity-60 group-hover:scale-110 group-hover:opacity-80'}`}
+                    src={thumbnailUrl}
                     onError={(e) => {
                         // Fallback background if OpenCV thumbnail hasn't populated or failed
                         e.currentTarget.src = "https://lh3.googleusercontent.com/aida-public/AB6AXuDBVxA_kpk_egFjudWXnFfjRikpwcgQ6EOvmg3am3GfOLvxs23CYM5f1Phf43YQ7kjdZFPKNHiOcyYLR6d1wQgP3Dw7T-PSIWVxGna2UexZyBOiHVhrkoN-ahb-5xgXJL-1PLQ7AvvZVN2JseeIZi6kt5kdy3P5JQA5yG0awOkzkRJBKhR84jrea_g3MpxJsB7RuToYxY7D_4ocnHw3L9xMuWCdodgnOiqWpMcJCAQPfsiBTR0fzWyiNNjE11xm_yEHC84bTnGdFtE";
                     }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-surface-container-lowest via-transparent to-transparent"></div>
-                
+
                 {renderStatus === 'rendered' && (
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-14 h-14 rounded-full bg-secondary/20 backdrop-blur-xl border border-secondary/40 flex items-center justify-center">
@@ -69,7 +69,7 @@ const ClipCard = ({ clip, index, videoId }: { clip: any, index: number, videoId:
                         </div>
                     </div>
                 )}
-                
+
                 {renderStatus === 'rendering' && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface-dim/40 backdrop-blur-sm">
                         <div className="relative">
@@ -91,35 +91,35 @@ const ClipCard = ({ clip, index, videoId }: { clip: any, index: number, videoId:
                     </div>
                 </div>
             </div>
-            
+
             <div className="p-6 flex flex-col flex-1">
                 <h3 className={`text-xl font-headline font-bold mb-2 ${renderStatus === 'rendering' ? 'text-on-surface/50' : 'text-on-surface'}`}>
                     Segment {index + 1}
                 </h3>
                 <p className={`text-sm mb-6 flex-1 italic leading-relaxed ${renderStatus === 'rendering' ? 'text-on-surface-variant/40' : 'text-on-surface-variant/80'}`}>
-                    <span className={`${renderStatus === 'rendering' ? 'text-primary/50' : 'text-primary'} font-bold not-italic`}>Reasoning:</span> {clip.explanation || "Identified as highly viral segment."}
+                    <span className={`${renderStatus === 'rendering' ? 'text-primary/50' : 'text-primary'} font-bold not-italic`}>Reasoning:</span> {clip.justification || "Identified as highly viral segment."}
                 </p>
-                
+
                 {renderStatus === 'pending' && (
                     <button onClick={handleTriggerRender} className="w-full py-3.5 rounded-xl bg-gradient-to-r from-primary to-primary-dim text-on-primary font-bold text-sm tracking-wide shadow-lg shadow-primary/10 hover:shadow-primary/30 transition-all active:scale-95">
                         Render Vertical Short
                     </button>
                 )}
-                
+
                 {renderStatus === 'rendering' && (
                     <button disabled className="w-full py-3.5 rounded-xl bg-surface-container-high text-on-surface-variant/30 font-bold text-sm tracking-wide flex items-center justify-center gap-2 cursor-not-allowed">
                         <span className="material-symbols-outlined text-sm animate-spin">sync</span>
                         Rendering GPU...
                     </button>
                 )}
-                
+
                 {renderStatus === 'rendered' && (
                     <a href={renderUrl || "#"} download className="w-full py-3.5 rounded-xl bg-secondary text-on-secondary-fixed font-bold text-sm tracking-wide shadow-lg shadow-secondary/20 hover:bg-secondary-dim transition-all flex items-center justify-center gap-2" target="_blank" rel="noopener noreferrer">
                         <span className="material-symbols-outlined text-lg">download</span>
                         Download MP4
                     </a>
                 )}
-                
+
                 {renderStatus === 'error' && (
                     <button onClick={handleTriggerRender} className="w-full py-3.5 rounded-xl bg-error text-on-error font-bold text-sm tracking-wide shadow-lg transition-all active:scale-95">
                         Render Failed (Retry)
@@ -133,7 +133,7 @@ const ClipCard = ({ clip, index, videoId }: { clip: any, index: number, videoId:
 const ResultsPage = () => {
     const { id } = useParams();
     const [clips, setClips] = useState<any[]>([]);
-    
+
     // Fetch clips once on mount dynamically!
     useEffect(() => {
         if (!id) return;

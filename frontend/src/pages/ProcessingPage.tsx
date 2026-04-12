@@ -6,15 +6,15 @@ const ProcessingPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const [status, setStatus] = useState('pending');
-    
+
     useEffect(() => {
         if (!id) return;
-        
+
         const interval = setInterval(async () => {
             try {
                 const data = await api.getVideoStatus(id);
                 setStatus(data.status); // downloading, transcribing, analyzing, clips_ready, or error
-                
+
                 if (data.status === 'clips_ready') {
                     clearInterval(interval);
                     navigate(`/results/${id}`);
@@ -26,19 +26,19 @@ const ProcessingPage = () => {
                 console.error("Status polling failed:", err);
             }
         }, 2000);
-        
+
         return () => clearInterval(interval);
     }, [id, navigate]);
 
     // UI State Resolvers
     const statuses = ['pending', 'downloading', 'transcribing', 'analyzing', 'clips_ready'];
     const currentIndex = statuses.indexOf(status) === -1 ? 0 : statuses.indexOf(status);
-    
+
     const isCompleted = (step: number) => {
         if (status === 'error') return false;
         return currentIndex > step;
     };
-    
+
     const isActive = (step: number) => {
         if (status === 'error') return false;
         return currentIndex === step;
@@ -56,7 +56,7 @@ const ProcessingPage = () => {
             {/* Main Content */}
             <main className="flex-grow flex items-center justify-center pt-24 pb-12 px-6">
                 <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none"></div>
-                
+
                 <div className="relative z-10 w-full max-w-2xl">
                     <div className="text-center mb-12">
                         {status === 'error' ? (
@@ -84,14 +84,13 @@ const ProcessingPage = () => {
                         <div className="space-y-10 relative">
                             {/* Connector Line */}
                             <div className="absolute left-[19px] top-4 bottom-4 w-[2px] bg-outline-variant/30"></div>
-                            
+
                             {/* Step 1: Downloading */}
                             <div className={`flex items-start gap-6 relative group ${!isCompleted(1) && !isActive(1) ? 'opacity-40 grayscale' : ''}`}>
-                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${
-                                    isCompleted(1) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(1) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
                                     isActive(1) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
-                                    'bg-surface-container border-outline-variant/30'
-                                }`}>
+                                        'bg-surface-container border-outline-variant/30'
+                                    }`}>
                                     <span className={`material-symbols-outlined ${isCompleted(1) ? 'text-secondary' : isActive(1) ? 'text-primary animate-spin' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
                                         {isCompleted(1) ? 'check_circle' : isActive(1) ? 'sync' : 'cloud_download'}
                                     </span>
@@ -101,31 +100,29 @@ const ProcessingPage = () => {
                                     <p className="text-on-surface-variant text-sm mt-1">{isActive(1) ? 'Extracting high-quality raw source...' : 'Source file retrieved from cloud storage'}</p>
                                 </div>
                             </div>
-                            
+
                             {/* Step 2: Transcribing */}
                             <div className={`flex items-start gap-6 relative group ${!isCompleted(2) && !isActive(2) ? 'opacity-40 grayscale' : ''}`}>
-                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${
-                                    isCompleted(2) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(2) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
                                     isActive(2) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
-                                    'bg-surface-container border-outline-variant/30'
-                                }`}>
+                                        'bg-surface-container border-outline-variant/30'
+                                    }`}>
                                     <span className={`material-symbols-outlined ${isCompleted(2) ? 'text-secondary' : isActive(2) ? 'text-primary animate-pulse' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
                                         {isCompleted(2) ? 'check_circle' : isActive(2) ? 'graphic_eq' : 'record_voice_over'}
                                     </span>
                                 </div>
                                 <div className="pt-1">
                                     <h3 className={`font-headline text-lg ${isActive(2) ? 'font-bold text-primary' : 'font-semibold text-on-surface'}`}>Transcribing &amp; Diarization</h3>
-                                    <p className="text-on-surface-variant text-sm mt-1">{isActive(2) ? 'Deep learning tracking speaker segments...' : 'Whisper & Pyannote processing complete'}</p>
+                                    <p className="text-on-surface-variant text-sm mt-1">{isActive(2) ? 'Deep learning tracking speaker segments...' : 'AssemblyAI transcription and speaker labeling complete'}</p>
                                 </div>
                             </div>
-                            
+
                             {/* Step 3: Analyzing */}
                             <div className={`flex items-start gap-6 relative group ${!isCompleted(3) && !isActive(3) ? 'opacity-40 grayscale' : ''}`}>
-                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${
-                                    isCompleted(3) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
+                                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center shrink-0 border ${isCompleted(3) ? 'bg-secondary-container border-secondary/20 shadow-[0_0_20px_rgba(83,221,252,0.15)]' :
                                     isActive(3) ? 'bg-primary/20 border-primary/40 shadow-[0_0_30px_rgba(186,158,255,0.25)] pulse-glow' :
-                                    'bg-surface-container border-outline-variant/30'
-                                }`}>
+                                        'bg-surface-container border-outline-variant/30'
+                                    }`}>
                                     <span className={`material-symbols-outlined ${isCompleted(3) ? 'text-secondary' : isActive(3) ? 'text-primary animate-spin' : 'text-on-surface-variant'} text-xl`} style={{ fontVariationSettings: "'FILL' 1" }}>
                                         {isCompleted(3) ? 'check_circle' : isActive(3) ? 'auto_awesome' : 'troubleshoot'}
                                     </span>
@@ -135,7 +132,7 @@ const ProcessingPage = () => {
                                     <p className="text-on-surface text-sm mt-1 font-medium italic opacity-80">{isActive(3) ? 'Evaluating narrative flow and peak engagement markers...' : 'Viral score arrays mapped'}</p>
                                 </div>
                             </div>
-                            
+
                             {/* Step 4: Clips Ready (Redirect wait state) */}
                             <div className={`flex items-start gap-6 relative group ${status !== 'clips_ready' ? 'opacity-40 grayscale' : ''}`}>
                                 <div className="relative z-10 w-10 h-10 rounded-full bg-surface-container flex items-center justify-center shrink-0 border border-outline-variant/30">

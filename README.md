@@ -144,7 +144,6 @@ Create `.env` in `backend/`:
 
 ```env
 # Required
-OPENROUTER_API_KEY=your_openrouter_or_proxy_key_here
 REDIS_URL=your_redis_url_here
 
 DEVICE="cpu"
@@ -171,7 +170,7 @@ In a new terminal (inside `backend/`, with venv activated), run your worker proc
 
 ```bash
 # Start processing worker
-python -m app.workers.processor
+python -m app.workers
 ```
 > Use your existing worker entry command(s) from your local setup.  
 > If you have separate workers, start both.
