@@ -1,6 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../lib/api';
 
 const LandingPage = () => {
+    const [url, setUrl] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+
+    const handleGenerate = async () => {
+        if (!url.trim()) return;
+        setIsLoading(true);
+        try {
+            // Shoots the POST request through Vite's local CORS-free proxy proxy -> FastAPI
+            const response = await api.submitVideo(url);
+            if (response.video_id) {
+                // Kick the user into the tracker page
+                navigate(`/processing/${response.video_id}`);
+            }
+        } catch (err) {
+            console.error("Failed to submit video:", err);
+            alert("Backend unreachable or error in request!");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     return (
         <div className="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen flex flex-col">
             {/* TopNavBar */}
@@ -39,11 +63,24 @@ const LandingPage = () => {
                                 <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur opacity-0 group-focus-within:opacity-100 transition duration-500"></div>
                                 <div className="flex-1 w-full px-6 flex items-center gap-3 relative">
                                     <span className="material-symbols-outlined text-on-surface-variant">link</span>
-                                    <input className="bg-transparent border-none focus:ring-0 text-on-surface outline-none placeholder:text-on-surface-variant/50 w-full font-body text-lg py-3" placeholder="Paste YouTube URL here..." type="text" />
+                                    <input 
+                                        className="bg-transparent border-none focus:ring-0 text-on-surface outline-none placeholder:text-on-surface-variant/50 w-full font-body text-lg py-3" 
+                                        placeholder="Paste YouTube URL here..." 
+                                        type="text"
+                                        value={url}
+                                        onChange={(e) => setUrl(e.target.value)}
+                                        disabled={isLoading}
+                                    />
                                 </div>
-                                <button className="w-full md:w-auto primary-gradient text-on-primary-fixed px-8 py-4 rounded-xl md:rounded-full font-label font-extrabold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-xl relative">
-                                    <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>
-                                    Generate Clips
+                                <button 
+                                    onClick={handleGenerate}
+                                    disabled={isLoading || !url.trim()}
+                                    className={`w-full md:w-auto primary-gradient text-on-primary-fixed px-8 py-4 rounded-xl md:rounded-full font-label font-extrabold text-base flex items-center justify-center gap-2 transition-transform shadow-xl relative ${isLoading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+                                >
+                                    <span className={`material-symbols-outlined ${isLoading ? 'animate-spin' : ''}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                                        {isLoading ? 'sync' : 'auto_awesome'}
+                                    </span>
+                                    {isLoading ? 'Connecting...' : 'Generate Clips'}
                                 </button>
                             </div>
 
