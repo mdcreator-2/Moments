@@ -125,11 +125,8 @@ cd Moments
 You need Redis running locally on default port (`6379`).
 
 ```bash
-# Option A: local redis service
 redis-server
 
-# Option B: docker
-docker run -p 6379:6379 redis:7
 ```
 
 ### 3) Backend setup
@@ -171,7 +168,7 @@ In a new terminal (inside `backend/`, with venv activated), run your worker proc
 
 ```bash
 # Start processing worker
-python -m app.workers
+python -m app.worker
 ```
 > Use your existing worker entry command(s) from your local setup.  
 > If you have separate workers, start both.
