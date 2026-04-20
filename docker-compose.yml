@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  # ─── FastAPI Backend ───
+  backend:
+    build: ./backend
+    container_name: moments-backend
+    env_file: ./backend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - clip-data:/tmp/clipper
+    restart: unless-stopped
+
+  # ─── Background Worker (same image, different entrypoint) ───
+  worker:
+    build: ./backend
+    container_name: moments-worker
+    env_file: ./backend/.env
+    command: ["python", "-m", "app.worker"]
+    volumes:
+      - clip-data:/tmp/clipper
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+  # ─── React Frontend (Nginx) ───
+  frontend:
+    build: ./frontend
+    container_name: moments-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  clip-data:

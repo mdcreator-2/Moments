@@ -49,26 +49,23 @@ Turn long-form YouTube videos into viral short clips in minutes.
 ## 📁 Repository Structure
 ```
 Moments/
-├── .gitignore
+├── docker-compose.yml
+├── README.md
 ├── CONTRIBUTING.md
 ├── LICENSE
-├── README.md
-├── execution.md
-├── frontend_prompts.md
+├── .gitignore
 ├── backend/
-│   ├── .env
-│   ├── .env.example
 │   ├── Dockerfile
-│   ├── worker.py
-│   ├── render_worker.py
+│   ├── .env              ← your secrets (git-ignored)
+│   ├── .env.example       ← template to copy
 │   ├── requirements.txt
 │   └── app/
 │       ├── __init__.py
-│       ├── main.py
-│       ├── config.py
-│       ├── models.py
+│       ├── main.py        ← FastAPI routes
+│       ├── config.py      ← env loading
+│       ├── models.py      ← Pydantic schemas
+│       ├── worker.py      ← Redis queue consumer
 │       └── services/
-│           ├── __init__.py
 │           ├── downloader.py
 │           ├── transcriber.py
 │           ├── analyzer.py
@@ -76,19 +73,11 @@ Moments/
 │           ├── subtitle_generator.py
 │           └── renderer.py
 └── frontend/
-    ├── .gitignore
-    ├── index.html
+    ├── Dockerfile
+    ├── nginx.conf
     ├── package.json
-    ├── package-lock.json
-    ├── tsconfig.json
-    ├── tsconfig.app.json
-    ├── tsconfig.node.json
     ├── vite.config.ts
-    ├── postcss.config.js
     ├── tailwind.config.js
-    ├── eslint.config.js
-    ├── public/
-    │   └── vite.svg
     └── src/
         ├── main.tsx
         ├── App.tsx
@@ -106,117 +95,278 @@ Moments/
             ├── ResultsPage.tsx
             └── ClipPage.tsx
 ```
+
 ---
 
-## 🚀 Local Setup
+## 📋 Prerequisites
 
-> Tested as a hackathon MVP workflow.  
-> If a command differs in your local scripts, use your project’s exact script names.
+Before deploying (Docker **or** manual), make sure you have:
 
-### 1) Clone
+| Requirement | Purpose | Where to get it |
+|---|---|---|
+| **Redis instance** | Job queue + state store | [Upstash](https://upstash.com) (free tier) or local `redis-server` |
+| **AssemblyAI API key** | Audio transcription & diarization | [assemblyai.com](https://www.assemblyai.com) |
+| **OpenRouter API key** | AI clip analysis (Qwen 3 32B) | [openrouter.ai](https://openrouter.ai) |
+| **FFmpeg** ⚠️ | Video cropping, subtitle burn-in, final render | See [FFmpeg install](#installing-ffmpeg) section below |
+
+---
+
+## 🚀 Deployment
+
+Choose **one** of the two methods below.
+
+---
+
+### Option A — Docker (Recommended)
+
+> The easiest way to get everything running. Docker handles FFmpeg, Python deps, and Nginx for you.
+
+#### 1. Install Docker
+
+- **Windows / Mac**: Install [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- **Linux**: Install [Docker Engine](https://docs.docker.com/engine/install/) + [Docker Compose](https://docs.docker.com/compose/install/)
+
+#### 2. Clone the repository
 
 ```bash
 git clone https://github.com/mdcreator-2/Moments.git
 cd Moments
 ```
 
-### 2) Start Redis
-
-You need Redis running locally on default port (`6379`).
+#### 3. Configure environment variables
 
 ```bash
-redis-server
-
+cp backend/.env.example backend/.env
 ```
 
-### 3) Backend setup
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-Create `.env` in `backend/`:
+Open `backend/.env` in a text editor and fill in your keys:
 
 ```env
-# Required
-REDIS_URL=your_redis_url_here
+# Use rediss:// for Upstash (TLS), redis:// for local Redis
+REDIS_URL="rediss://default:your_password@your-host.upstash.io:6379"
 
 DEVICE="cpu"
 BATCH_SIZE="16"
 COMPUTE_TYPE="int8"
 
-HF_AUTH_TOKEN=your_hf_auth_token_here
-ASSEMBLYAI_API_KEY=your_assemblyai_api_key_here
-
-OPENROUTER_API_KEY=your_openrouter_or_proxy_key_here
+HF_AUTH_TOKEN=""
+ASSEMBLYAI_API_KEY="your_assemblyai_key"
+OPENROUTER_API_KEY="your_openrouter_key"
 ```
 
-Run backend API:
+> **⚠️ `redis://` vs `rediss://`**  
+> Cloud providers like Upstash **require TLS** → use `rediss://` (double s).  
+> A local `redis-server` uses plain TCP → use `redis://`.
+
+#### 4. Build and start all services
+
+```bash
+docker compose up --build
+```
+
+This starts **three** containers:
+
+| Container | Port | Description |
+|---|---|---|
+| `moments-backend` | `8000` | FastAPI API server |
+| `moments-worker` | — | Background job processor (queues) |
+| `moments-frontend` | `3000` | React app served via Nginx |
+
+#### 5. Open the app
+
+Navigate to **http://localhost:3000** in your browser.
+
+#### Useful Docker commands
+
+```bash
+# Run in background
+docker compose up --build -d
+
+# View logs
+docker compose logs -f
+
+# Stop everything
+docker compose down
+
+# Rebuild after code changes
+docker compose up --build
+```
+
+---
+
+### Option B — Manual Setup
+
+> Run each process natively on your machine. Useful for development.
+
+#### 1. Install system dependencies
+
+You need the following installed on your system:
+
+| Tool | Version | Install guide |
+|---|---|---|
+| **Python** | 3.10+ | [python.org](https://www.python.org/downloads/) |
+| **Node.js** | 18+ | [nodejs.org](https://nodejs.org/) |
+| **FFmpeg** | 6.0+ | See [Installing FFmpeg](#installing-ffmpeg) below |
+| **Redis** | 7.0+ | [Upstash](https://upstash.com) (cloud) or local install |
+
+#### 2. Clone the repository
+
+```bash
+git clone https://github.com/mdcreator-2/Moments.git
+cd Moments
+```
+
+#### 3. Configure environment variables
+
+```bash
+cp backend/.env.example backend/.env
+```
+
+Edit `backend/.env` with your keys (same format as Docker section above).
+
+#### 4. Backend setup
+
+```bash
+cd backend
+python -m venv .venv
+
+# Activate virtual environment
+# Linux / macOS:
+source .venv/bin/activate
+# Windows (PowerShell):
+.venv\Scripts\activate
+
+pip install -r requirements.txt
+```
+
+#### 5. Start the API server
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 4) Start worker(s)
+#### 6. Start the worker (new terminal)
 
-In a new terminal (inside `backend/`, with venv activated), run your worker process(es) that consume:
-- `job` queue (processing)
-- `render_job` queue (clip rendering)
+Open a **second terminal**, activate the venv, and run:
 
 ```bash
-# Start processing worker
+cd backend
+
+# Activate venv again in this terminal
+# Linux / macOS:
+source .venv/bin/activate
+# Windows (PowerShell):
+.venv\Scripts\activate
+
 python -m app.worker
 ```
-> Use your existing worker entry command(s) from your local setup.  
-> If you have separate workers, start both.
 
-### 5) Frontend setup
+You should see:
+```
+[Worker] Initialized and waiting for Redis jobs...
+```
+
+> The worker listens on two Redis queues:
+> - `job` — video download, transcription, and AI analysis
+> - `render_job` — clip rendering (face tracking + subtitles + FFmpeg)
+
+#### 7. Frontend setup (new terminal)
+
+Open a **third terminal**:
 
 ```bash
-cd ../frontend
+cd frontend
 npm install
 npm run dev
 ```
 
-Frontend runs on Vite default port (usually `5173`).
+#### 8. Open the app
+
+Navigate to **http://localhost:5173** in your browser.
+
+> The Vite dev server automatically proxies `/api/*` requests to the backend at `http://127.0.0.1:8000`.
 
 ---
 
-## 🔌 API Overview (current)
+## 🔧 Installing FFmpeg
 
-From `backend/app/main.py`:
+FFmpeg is **required** for video rendering (cropping, subtitle burn-in, encoding). The Docker setup includes it automatically — this section is only needed for **manual** deployment.
 
-- `POST /api/videos`  
-  Submit YouTube URL and create processing job
+### Windows
 
-- `GET /api/videos/{video_id}`  
-  Get pipeline status (`downloading`, ..., `clips_ready`) and clip metadata when ready
+```powershell
+# Using winget (Windows 10+)
+winget install Gyan.FFmpeg
 
-- `POST /api/videos/{video_id}/clips/{clip_index}/render`  
-  Queue clip render with subtitle style
+# Or using Chocolatey
+choco install ffmpeg
+```
 
-- `GET /api/videos/{video_id}/clips/{clip_index}/status`  
-  Poll render status
+Or download manually from [gyan.dev/ffmpeg](https://www.gyan.dev/ffmpeg/builds/) and add the `bin/` folder to your system `PATH`.
 
-- `GET /api/videos/{video_id}/clips/{clip_index}/download`  
-  Download rendered MP4
+### macOS
 
-- `GET /api/videos/{video_id}/clips/{clip_index}/thumbnail`  
-  Fetch generated thumbnail (if available)
+```bash
+brew install ffmpeg
+```
+
+### Linux (Debian / Ubuntu)
+
+```bash
+sudo apt update && sudo apt install ffmpeg -y
+```
+
+### Verify installation
+
+```bash
+ffmpeg -version
+```
+
+You should see version info — any version **6.0+** works.
 
 ---
 
-## 🎬 Demo Flow (Real YouTube Link)
+## 🔌 API Reference
 
-1. Open frontend
-2. Paste a real YouTube URL in landing page
-3. Submit and wait on processing page
-4. Open generated clip candidates
-5. Trigger render for a selected clip
-6. Preview/download MP4 from download endpoint
+All endpoints are served from the backend at port `8000`.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/videos` | Submit a YouTube URL → starts the pipeline |
+| `GET` | `/api/videos/{video_id}` | Get pipeline status + clip data when ready |
+| `POST` | `/api/videos/{video_id}/clips/{clip_index}/render` | Queue a clip for rendering with a subtitle style |
+| `GET` | `/api/videos/{video_id}/clips/{clip_index}/status` | Poll render progress |
+| `GET` | `/api/videos/{video_id}/clips/{clip_index}/download` | Download the rendered MP4 |
+| `GET` | `/api/videos/{video_id}/clips/{clip_index}/thumbnail` | Fetch clip thumbnail (if generated) |
+
+### Pipeline statuses
+
+```
+downloading → transcribing → analyzing → clips_ready
+```
+
+### Example — Submit a video
+
+```bash
+curl -X POST http://localhost:8000/api/videos \
+  -H "Content-Type: application/json" \
+  -d '{"youtube_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"}'
+```
+
+```json
+{ "video_id": "a1b2c3d4-...", "status": "downloading" }
+```
+
+---
+
+## 🎬 Demo Flow
+
+1. Open the frontend in your browser
+2. Paste a YouTube URL on the landing page
+3. Submit and wait on the processing page (watch the status update live)
+4. Browse the AI-generated clip candidates
+5. Pick a subtitle style and trigger a render
+6. Preview and download the final vertical MP4
 
 > This project was demoed live with real-time processing (not pre-generated outputs).
 
@@ -224,20 +374,21 @@ From `backend/app/main.py`:
 
 ## ⚠️ Known Limitations (Hackathon MVP)
 
-- CORS is currently permissive for rapid development.
-- Local file storage is used for rendered clips/thumbnails (`/tmp/...`) in current flow.
-- Error handling and retries are basic.
-- Infra/scaling/security hardening is not production-complete.
+- CORS is currently permissive (`*`) for rapid development
+- Rendered clips are stored on the local filesystem (`/tmp/clipper/...`)
+- Error handling and retry logic are minimal
+- No authentication or per-user isolation
+- Infrastructure scaling and security hardening are not production-complete
 
 ---
 
 ## 🧭 Roadmap (Post-hackathon)
 
-- Persistent object storage for rendered assets
+- Persistent object storage for rendered assets (S3 / Firebase)
 - Auth + per-user project history
 - Better retry logic and worker observability
 - Improved clip ranking with engagement feedback loop
-- One-click cloud deploy
+- One-click cloud deploy (Railway / Render)
 
 ---
 
@@ -245,12 +396,12 @@ From `backend/app/main.py`:
 
 Built by the Moments hackathon team.
 
-- Mohmmad Ameer Siddqui - Backend Developer - [GitHub](https://github.com/mdcreator-2)
-- Mohammad Taha Yaseen - Frontend Developer - [GitHub](https://github.com/MohammadTahaYaseen)
-- Yash Garg - AI Developer - [GitHub](https://github.com/yashgarg2866-cell)
+- **Mohmmad Ameer Siddqui** — Backend Developer — [GitHub](https://github.com/mdcreator-2)
+- **Mohammad Taha Yaseen** — Frontend Developer — [GitHub](https://github.com/MohammadTahaYaseen)
+- **Yash Garg** — AI Developer — [GitHub](https://github.com/yashgarg2866-cell)
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
+This project is licensed under the MIT License — see the [LICENSE](./LICENSE) file for details.
