@@ -8,11 +8,8 @@ def download_video(url, video_id):
         
         print(f"[Downloader] Initializing Pytubefix Bot Bypass for URL: {url}")
         
-        # Pytubefix automatically leverages an embedded Node runtime to decipher YouTube's 
-        # proof-of-work (PoTokens) dynamically, evading the exact block yt-dlp was hitting.
         yt = YouTube(url)
         
-        # Search exclusively for a pre-mixed, hardware-accelerated friendly MP4 payload (usually 720p)
         stream = yt.streams.filter(progressive=True, file_extension='mp4').order_by('resolution').desc().first()
         
         if not stream:
