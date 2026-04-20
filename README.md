@@ -1,6 +1,6 @@
 # Moments
 
-🔗 **Live Demo:** [https://moments-production-fb4f.up.railway.app/](https://moments-production-fb4f.up.railway.app/)
+🔗 **Live Demo:** [https://moments.up.railway.app/](Moments)
 
 Turn long-form YouTube videos into viral short clips in minutes.
 
