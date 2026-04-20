@@ -1,9 +1,10 @@
 import axios from 'axios';
 
-// Vite proxies /api natively in development, so we rely on relative paths locally
-// In production, you would attach this to process.env.VITE_API_URL
+// In development, Vite proxies /api to the backend (baseURL stays empty).
+// In production, set VITE_API_URL to your deployed backend URL.
+// Docker (nginx) also proxies /api, so it works with an empty baseURL too.
 const apiClient = axios.create({
-  baseURL: '', // The proxy intercepts this
+  baseURL: import.meta.env.VITE_API_URL || '',
   headers: {
     'Content-Type': 'application/json'
   }

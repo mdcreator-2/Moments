@@ -372,6 +372,90 @@ curl -X POST http://localhost:8000/api/videos \
 
 ---
 
+## 🌐 Cloud Deployment (Get a Live Link)
+
+> Get a public URL for your demo using [Railway](https://railway.app).
+
+### Why Railway?
+
+- Deploys Docker containers natively
+- Supports monorepo with multiple services
+- Free trial ($5 credit — plenty for a hackathon demo)
+- Gives you a `*.railway.app` public URL instantly
+
+### Step-by-step
+
+#### 1. Push your code to GitHub
+
+Make sure your latest code is committed and pushed.
+
+```bash
+git add -A
+git commit -m "ready for deploy"
+git push origin main
+```
+
+#### 2. Sign up on Railway
+
+Go to [railway.app](https://railway.app) and sign in with your **GitHub** account.
+
+#### 3. Create a new project
+
+Click **New Project → Deploy from GitHub Repo** → select your `Moments` repository.
+
+#### 4. Set up three services
+
+You need to create **3 services** inside the same Railway project:
+
+| Service | Root Directory | Start Command | Port |
+|---|---|---|---|
+| **Backend API** | `backend` | *(Dockerfile default)* | `8000` |
+| **Worker** | `backend` | `python -m app.worker` | — |
+| **Frontend** | `frontend` | *(Dockerfile default)* | `80` |
+
+For each service:
+1. Click **+ New Service → GitHub Repo** → select `Moments`
+2. Go to **Settings → Source** → set the **Root Directory** (`backend` or `frontend`)
+3. For the Worker, go to **Settings → Deploy** → override the **Start Command** to `python -m app.worker`
+
+#### 5. Add environment variables
+
+For **both** the Backend API and Worker services, go to **Variables** and add:
+
+```env
+REDIS_URL=rediss://default:your_password@your-host.upstash.io:6379
+DEVICE=cpu
+BATCH_SIZE=16
+COMPUTE_TYPE=int8
+HF_AUTH_TOKEN=
+ASSEMBLYAI_API_KEY=your_key
+OPENROUTER_API_KEY=your_key
+```
+
+For the **Frontend** service, add:
+
+```env
+VITE_API_URL=https://your-backend-service.railway.app
+```
+
+> Replace `your-backend-service.railway.app` with the actual URL Railway assigns to your Backend API service (found in the service's **Settings → Networking → Public Networking**).
+
+#### 6. Enable public networking
+
+For the **Backend API** and **Frontend** services:
+1. Go to **Settings → Networking**
+2. Click **Generate Domain** to get a public `*.railway.app` URL
+
+The Worker doesn't need a public URL — it only talks to Redis.
+
+#### 7. Deploy
+
+Railway auto-deploys on every push to `main`. Your live link is the **Frontend** service's public URL.
+
+> **💡 Tip:** Add your live frontend URL to the top of this README under a "🔗 Live Demo" badge once deployed.
+
+---
+
 ## ⚠️ Known Limitations (Hackathon MVP)
 
 - CORS is currently permissive (`*`) for rapid development
