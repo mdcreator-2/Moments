@@ -1,6 +1,6 @@
 # Moments
 
-🔗 **Live Demo:** [https://moments.up.railway.app/](Moments)
+🔗 **Live Demo:** [Moments](https://moments.up.railway.app/)
 
 Turn long-form YouTube videos into viral short clips in minutes.
 
